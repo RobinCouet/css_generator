@@ -1,0 +1,117 @@
+#!/usr/bin/env php
+<?php
+include('recursive.php');
+include('sprite.php');
+
+function main($argc, $argv) {
+	$rec = 0;
+
+	if ($argc == 2) {
+		if (is_dir($argv[1])) {
+			sprite($argv[1]);
+			if (file_exists("sprite.png"))
+				css_creator();
+		}
+	}
+	elseif ($argc != 2) {
+		foreach ($argv as $arg) {
+			if (is_dir($arg)) {
+				$rec++;
+				$folder = $arg;
+			}
+		}
+		if (!isset($folder) || $rec > 1) {
+			echo "Veuillez entrer un seul nom de dossier\n";
+			die;
+		}
+		$option = my_getopt($argv);
+		choice($folder, $option);
+	}
+}
+
+function choice($folder, $option) {
+	if (isset($option["r"])) {
+		get_fold($folder);
+		css_creator();
+		$css = 1;
+	}
+	else
+		sprite($folder);
+	if (anti_thibaut_i($option)) {
+		rename("sprite.png", $option["i"]);
+		css_creator($option["i"]);
+		$css = 1;
+	}
+	if (anti_thibaut_s($option)) {
+		if (isset($option["i"])) {
+			css_creator($option["i"]);
+		}
+		else {
+			css_creator();
+		}
+		$css = 1;
+		rename('style.css', $option["s"]);
+	}
+	if (!isset($css) && file_exists("sprite.png"))
+		css_creator();
+}
+
+function my_getopt($argv) {
+	for ($i = 1;isset($argv[$i]);$i++) {
+		if (isset($argv[$i + 1]))
+			$av = $argv[$i + 1];
+		if ($argv[$i] == "-r" || preg_match("#^--recursive$#", $argv[$i]))
+			$tab["r"] = true;
+		if ($argv[$i] == "-i" && isset($av) && !is_dir($av) && $av != "-r" &&
+			$av != "-s" && $av != "-i" || preg_match("#^--output-image=#", 
+				$argv[$i])) {
+			if (preg_match("#^--output-image=#", $argv[$i]))
+				$tab["i"] = preg_replace("#^--output-image=(.+)$#", '$1', 
+					$argv[$i]);
+			else
+				$tab["i"] = $av;
+		}
+		if ($argv[$i] == "-s" && isset($av) && !is_dir($av) && $av != "-r" &&
+			$av != "-i" && $av != "-s" || preg_match("#^--output-style=#", 
+				$argv[$i])) {
+			if (preg_match("#^--output-style=#", $argv[$i]))
+				$tab["s"] = preg_replace("#^--output-style=(.+)$#", '$1', 
+					$argv[$i]);
+			$tab["s"] = $av;
+		}
+	}
+	if (isset($tab))
+		return $tab;
+}
+function anti_thibaut_s($option) {
+	$tab[0] = "css_generator";
+	$tab[1] = "sprite.php";
+	$tab[2] = "recursive.php";
+
+	if (isset($option["s"])) {
+		if ($option["s"] == $tab[0] || $option["s"] == $tab[1] ||$option["s"] 
+			== $tab[2])
+		{
+			echo "Hey, Thibaut, laisse mon " . $option["s"] . " tranquil!\n";
+			die;
+		}
+		return true;
+	}
+}
+function anti_thibaut_i($option) {
+	$tab[0] = "css_generator";
+	$tab[1] = "sprite.php";
+	$tab[2] = "recursive.php";
+	
+	if (isset($option["i"])) {
+		if ($option["i"] == $tab[0] || $option["i"] == $tab[1] ||$option["i"] 
+			== $tab[2])
+		{
+			echo "Hey, Thibaut, laisse mon " . $option["i"] . " tranquil!\n";
+			die;
+		}
+		return true;
+	}
+}
+
+main($argc, $argv);
